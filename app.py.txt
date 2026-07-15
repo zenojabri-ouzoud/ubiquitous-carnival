@@ -1,48 +1,133 @@
-import streamlit as st
-import random
+import pygame
 
-# قاعدة البيانات بـ 40 دولة
-data = {
-    "Morocco": "Rabat", "France": "Paris", "Japan": "Tokyo", "Egypt": "Cairo",
-    "Germany": "Berlin", "Italy": "Rome", "Spain": "Madrid", "UK": "London",
-    "USA": "Washington", "Canada": "Ottawa", "China": "Beijing", "Russia": "Moscow",
-    "Brazil": "Brasilia", "Argentina": "Buenos Aires", "Australia": "Canberra",
-    "India": "New Delhi", "Turkey": "Ankara", "South Korea": "Seoul",
-    "Saudi Arabia": "Riyadh", "UAE": "Abu Dhabi", "Nigeria": "Abuja",
-    "South Africa": "Pretoria", "Mexico": "Mexico City", "Netherlands": "Amsterdam",
-    "Belgium": "Brussels", "Switzerland": "Bern", "Sweden": "Stockholm",
-    "Norway": "Oslo", "Finland": "Helsinki", "Denmark": "Copenhagen",
-    "Greece": "Athens", "Portugal": "Lisbon", "Poland": "Warsaw",
-    "Thailand": "Bangkok", "Vietnam": "Hanoi", "Indonesia": "Jakarta",
-    "Malaysia": "Kuala Lumpur", "Iran": "Tehran", "Pakistan": "Islamabad",
-    "Qatar": "Doha"
-}
+# إعدادات الشاشة
+TILE_SIZE = 40
+# تعريف الألوان
+WHITE, BLACK, RED, BLUE = (255, 255, 255), (0, 0, 0), (255, 0, 0), (0, 0, 255)
 
-st.title("🎮 لعبة تخمين العاصمة")
+# تعريف 20 مستوى بتصاعد في الصعوبة
+levels = [
+    # المستوى 1 - سهل جداً
+    [[1,1,1,1,1], [1,0,0,0,1], [1,0,1,2,1], [1,1,1,1,1]],
+    
+    # المستوى 2
+    [[1,1,1,1,1], [1,0,1,0,1], [1,0,1,0,1], [1,0,0,2,1], [1,1,1,1,1]],
+    
+    # المستوى 3
+    [[1,1,1,1,1,1], [1,0,0,0,0,1], [1,0,1,1,0,1], [1,0,0,1,2,1], [1,1,1,1,1,1]],
+    
+    # المستوى 4
+    [[1,1,1,1,1,1], [1,0,1,0,0,1], [1,0,1,0,1,1], [1,0,0,0,2,1], [1,1,1,1,1,1]],
+    
+    # المستوى 5
+    [[1,1,1,1,1,1], [1,0,0,1,0,1], [1,0,1,1,0,1], [1,0,0,0,2,1], [1,1,1,1,1,1]],
+    
+    # المستوى 6
+    [[1,1,1,1,1,1,1], [1,0,0,1,0,0,1], [1,0,1,1,0,1,1], [1,0,0,0,0,2,1], [1,1,1,1,1,1,1]],
+    
+    # المستوى 7
+    [[1,1,1,1,1,1,1], [1,0,0,0,1,0,1], [1,0,1,0,1,0,1], [1,0,1,0,0,2,1], [1,1,1,1,1,1,1]],
+    
+    # المستوى 8
+    [[1,1,1,1,1,1,1], [1,0,0,1,0,0,1], [1,0,1,0,1,0,1], [1,0,0,0,1,2,1], [1,1,1,1,1,1,1]],
+    
+    # المستوى 9
+    [[1,1,1,1,1,1,1,1], [1,0,0,0,1,0,0,1], [1,0,1,0,1,0,1,1], [1,0,0,0,1,0,2,1], [1,1,1,1,1,1,1,1]],
+    
+    # المستوى 10
+    [[1,1,1,1,1,1,1,1], [1,0,0,1,0,0,0,1], [1,0,1,1,0,1,0,1], [1,0,0,0,0,0,2,1], [1,1,1,1,1,1,1,1]],
+    
+    # المستوى 11
+    [[1,1,1,1,1,1,1,1], [1,0,1,0,0,1,0,1], [1,0,1,0,1,1,0,1], [1,0,0,0,0,0,2,1], [1,1,1,1,1,1,1,1]],
+    
+    # المستوى 12
+    [[1,1,1,1,1,1,1,1], [1,0,1,0,0,0,0,1], [1,0,1,0,1,1,0,1], [1,0,0,0,1,0,2,1], [1,1,1,1,1,1,1,1]],
+    
+    # المستوى 13
+    [[1,1,1,1,1,1,1,1,1], [1,0,0,1,0,0,0,0,1], [1,0,1,1,0,1,1,0,1], [1,0,0,0,0,0,0,2,1], [1,1,1,1,1,1,1,1,1]],
+    
+    # المستوى 14
+    [[1,1,1,1,1,1,1,1,1], [1,0,0,0,1,0,0,0,1], [1,0,1,0,1,0,1,0,1], [1,0,0,0,0,0,0,2,1], [1,1,1,1,1,1,1,1,1]],
+    
+    # المستوى 15
+    [[1,1,1,1,1,1,1,1,1], [1,0,0,0,1,0,0,0,1], [1,0,1,0,1,0,1,0,1], [1,0,1,0,0,0,1,2,1], [1,1,1,1,1,1,1,1,1]],
+    
+    # المستوى 16
+    [[1,1,1,1,1,1,1,1,1,1], [1,0,0,0,1,0,0,0,0,1], [1,0,1,0,1,0,1,1,0,1], [1,0,0,0,0,0,0,0,2,1], [1,1,1,1,1,1,1,1,1,1]],
+    
+    # المستوى 17
+    [[1,1,1,1,1,1,1,1,1,1], [1,0,0,1,0,0,1,0,0,1], [1,0,1,0,0,0,1,0,1,1], [1,0,0,0,1,0,0,0,2,1], [1,1,1,1,1,1,1,1,1,1]],
+    
+    # المستوى 18
+    [[1,1,1,1,1,1,1,1,1,1], [1,0,1,0,0,1,0,0,0,1], [1,0,1,0,1,0,0,1,0,1], [1,0,0,0,0,0,1,0,2,1], [1,1,1,1,1,1,1,1,1,1]],
+    
+    # المستوى 19
+    [[1,1,1,1,1,1,1,1,1,1], [1,0,1,0,0,0,0,0,0,1], [1,0,1,0,1,1,1,1,0,1], [1,0,0,0,0,0,0,0,2,1], [1,1,1,1,1,1,1,1,1,1]],
+    
+    # المستوى 20 - الأصعب
+    [[1,1,1,1,1,1,1,1,1,1,1], [1,0,0,1,0,0,0,1,0,0,1], [1,0,1,0,0,1,0,1,0,1,1], [1,0,0,0,1,0,0,0,0,2,1], [1,1,1,1,1,1,1,1,1,1,1]]
+]
 
-# تهيئة السكور والأسئلة في الجلسة (Session State)
-if 'score' not in st.session_state:
-    st.session_state.score = 0
-if 'country' not in st.session_state:
-    st.session_state.country = random.choice(list(data.keys()))
+current_level = 0
+player_pos = [1, 1] # [x, y]
 
-country = st.session_state.country
+pygame.init()
+# حساب حجم الشاشة بناءً على أكبر مستوى
+max_width = max(len(level[0]) for level in levels) * TILE_SIZE
+max_height = max(len(level) for level in levels) * TILE_SIZE
+screen = pygame.display.set_mode((max_width, max_height))
+pygame.display.set_caption("لعبة المتاهة - 20 مستوى")
+clock = pygame.time.Clock()
 
-st.write(f"### ما هي عاصمة دولة: {country}؟")
-guess = st.text_input("اكتب العاصمة هنا:")
+def draw_game():
+    maze = levels[current_level]
+    for r, row in enumerate(maze):
+        for c, tile in enumerate(row):
+            color = WHITE if tile == 0 else (BLACK if tile == 1 else RED)
+            pygame.draw.rect(screen, color, (c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE))
+    
+    # رسم اللاعب
+    pygame.draw.rect(screen, BLUE, (player_pos[0] * TILE_SIZE, player_pos[1] * TILE_SIZE, TILE_SIZE, TILE_SIZE))
 
-if st.button("تحقق"):
-    if guess.strip().capitalize() == data[country]:
-        st.success("✅ صحيح! أحسنت.")
-        st.session_state.score += 1
-        st.session_state.country = random.choice(list(data.keys()))
-        st.rerun() # لإعادة تحميل الصفحة للسؤال الموالي
-    else:
-        st.error("❌ خطأ، حاول مرة أخرى!")
+# عرض المستوى الحالي
+font = pygame.font.Font(None, 36)
 
-st.write(f"### مجموع نقاطك: {st.session_state.score}")
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT: 
+            running = False
+        
+        # منطق الحركة
+        if event.type == pygame.KEYDOWN:
+            new_x, new_y = player_pos[0], player_pos[1]
+            if event.key == pygame.K_UP: new_y -= 1
+            elif event.key == pygame.K_DOWN: new_y += 1
+            elif event.key == pygame.K_LEFT: new_x -= 1
+            elif event.key == pygame.K_RIGHT: new_x += 1
+            
+            # التأكد من أن الإحداثيات داخل حدود المتاهة
+            if 0 <= new_y < len(levels[current_level]) and 0 <= new_x < len(levels[current_level][0]):
+                # التحقق من الاصطدام بالجدران
+                if levels[current_level][new_y][new_x] != 1:
+                    player_pos = [new_x, new_y]
+                    
+                    # التحقق من الوصول للنهاية
+                    if levels[current_level][new_y][new_x] == 2:
+                        current_level += 1
+                        player_pos = [1, 1] # إعادة التموضع للبداية
+                        if current_level >= len(levels):
+                            print("مبروك! أنهيت كل المستويات العشرين!")
+                            running = False
 
-if st.button("إعادة اللعبة من الصفر"):
-    st.session_state.score = 0
-    st.session_state.country = random.choice(list(data.keys()))
-    st.rerun()
+    screen.fill(BLACK)
+    draw_game()
+    
+    # عرض رقم المستوى
+    level_text = font.render(f"Level: {current_level + 1}/20", True, (255, 255, 0))
+    screen.blit(level_text, (10, 10))
+    
+    pygame.display.flip()
+    clock.tick(30)
+
+pygame.quit()
